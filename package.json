@@ -1,0 +1,9 @@
+{
+  "name": "com.arsenstudio.cmake",
+  "version": "1.0.0",
+  "displayName": "CMake Build Preprocessor",
+  "unity": "2018.1",
+  "description": "",
+  "dependencies": {
+  }
+}
