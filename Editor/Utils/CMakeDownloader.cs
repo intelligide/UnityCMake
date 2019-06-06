@@ -1,6 +1,10 @@
 using System;
 using System.IO;
-using Ionic.Zip;
+using System.Linq;
+using SharpCompress.Readers;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace cmake
 {
@@ -24,21 +28,75 @@ namespace cmake
             }
 
             string fullUrl = String.Format(Url, version);
+            UnityWebRequest www = UnityWebRequest.Get(fullUrl);
 
-            // Unzip(zipPath, extractPath);
-
-            return "";
-        }
-
-        public static void Unzip(string zipFilePath, string location)
-        {
-            Directory.CreateDirectory(location);
-            
-            using(ZipFile zip = ZipFile.Read(zipFilePath)) 
+            UnityWebRequestAsyncOperation asyncOp = www.SendWebRequest();
+            do
             {
-                zip.ExtractAll(location, ExtractExistingFileAction.OverwriteSilently);
+                EditorUtility.DisplayProgressBar("CMake", "Downloading CMake...", asyncOp.progress);
+            } 
+            while (!asyncOp.isDone);
+
+            if(www.isNetworkError || www.isHttpError) {
+                Debug.LogError(www.error);
+                EditorUtility.ClearProgressBar();
+                return null;
+            }
+            
+            string destdir = Path.Combine(EditorApplication.applicationContentsPath, "Tools/CMake");
+            if (!Directory.Exists(destdir))
+            {
+                Directory.CreateDirectory(destdir);
             }
 
+            using (Stream stream = new MemoryStream(www.downloadHandler.data))
+            using (var reader = ReaderFactory.Open(stream))
+            {
+                while (reader.MoveToNextEntry())
+                {
+                    EditorUtility.DisplayProgressBar("CMake", "Uncompressing CMake...", asyncOp.progress);
+                    if (!reader.Entry.IsDirectory)
+                    {
+                        using (var entryStream = reader.OpenEntryStream())
+                        {                       
+                            string file = Path.GetFileName(reader.Entry.Key);
+                            string folder = Path.GetDirectoryName(reader.Entry.Key);
+                            
+                            {
+                                var fragments = folder.Split(new char[]{ Path.DirectorySeparatorChar });
+                                if(fragments.Length > 1)
+                                {
+                                    folder = String.Join(Path.DirectorySeparatorChar.ToString(), fragments.Skip(1).Take(fragments.Length - 1).ToArray());
+                                }
+                                else
+                                {
+                                    folder = "";
+                                }
+                            }
+                            
+                            string filedestdir = Path.Combine(destdir, folder);
+                            if (!Directory.Exists(filedestdir))
+                            {
+                                Directory.CreateDirectory(filedestdir);
+                            }
+                            string destinationFileName = Path.Combine(filedestdir, file);
+
+                            using (FileStream fs = File.OpenWrite(destinationFileName))
+                            {
+                                entryStream.CopyTo(fs);
+                            }
+                        }
+                    }
+                }
+            }
+
+            EditorUtility.ClearProgressBar();
+
+            #if UNITY_EDITOR_WIN
+            return Path.Combine(destdir, "bin/cmake.exe");
+            #else
+            return Path.Combine(destdir, "bin/cmake");
+            #endif
         }
     }
 }

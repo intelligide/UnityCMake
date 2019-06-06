@@ -81,13 +81,16 @@ namespace cmake
 
             ExecutablePath = EditorGUILayout.TextField("CMake Executable", ExecutablePath);
             GUILayout.Button("Browse", GUILayout.Width(80), GUILayout.Height(14));
-            GUILayout.Button("Download", GUILayout.Width(80), GUILayout.Height(14));
+            if(GUILayout.Button("Download", GUILayout.Width(80), GUILayout.Height(14)))
+            {
+                ExecutablePath = CMakeDownloader.Download();
+            }
 
             EditorGUILayout.EndHorizontal();
 
             BuildOnEditorLoad = EditorGUILayout.Toggle("Build On Editor Load", BuildOnEditorLoad);
             BuildOnScriptReload = EditorGUILayout.Toggle("Build On Script Reload", BuildOnScriptReload);
-            BuildBeforePlayerCompilation = EditorGUILayout.Toggle("Build On Script Reload", BuildBeforePlayerCompilation);
+            BuildBeforePlayerCompilation = EditorGUILayout.Toggle("Build Before Player Compilation", BuildBeforePlayerCompilation);
         }
 
         static void Load()
