@@ -160,5 +160,16 @@ namespace cmake
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+
+        public static void Clean()
+        {
+            // TODO
+        }
+
+        public static void FullClean()
+        {
+            Clean();
+            //TODO
+        }
     }
 }

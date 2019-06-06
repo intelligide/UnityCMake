@@ -26,5 +26,17 @@ namespace cmake
         {
             CMakeUtility.Install();
         }
+
+        [MenuItem("Tools/CMake/Clean (Test)")]
+        public static void Clean()
+        {
+            CMakeUtility.Clean();
+        }
+
+        [MenuItem("Tools/CMake/Full Clean (Test)")]
+        public static void FullClean()
+        {
+            CMakeUtility.FullClean();
+        }
     }
 }
