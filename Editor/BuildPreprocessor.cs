@@ -12,35 +12,12 @@ namespace cmake
         public int callbackOrder { get { return 0; } }
         public void OnPreprocessBuild(BuildReport report)
         {
-            string projectPath = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-            string sourcePath = projectPath;
-            string buildPath = Path.Combine(projectPath, "Library/cmake-build");
-
-            var cmakeTool = new CMakeTool(GlobalSettings.ExecutablePath);
-            var cp = cmakeTool.Configure(sourceFolder: projectPath, buildFolder: buildPath);
-
-            EditorUtility.DisplayProgressBar("CMake", "Configuring CMake", 1);
-
-            while(!cp.HasExited)
+            if(EditorPrefs.GetBool(GlobalSettings.Keys.buildBeforePlayerCompilation, true))
             {
-                string s = cp.StandardOutput.ReadToEnd();
-                if(s.Length > 0)
-                {
-                    UnityEngine.Debug.Log(s);
-                }
+                CMakeUtility.Configure();
+                CMakeUtility.Build();
+                CMakeUtility.Install();
             }
-
-            if(cp.ExitCode != 0) {
-                throw new BuildFailedException(cp.StandardError.ReadToEnd());
-            }
-
-            EditorUtility.DisplayProgressBar("CMake", "Building with CMake", 1);
-            cmakeTool.Build();
-
-
-            EditorUtility.DisplayProgressBar("CMake", "Refresh Asset Database", 1);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
         }
     }
 }

@@ -5,18 +5,47 @@ namespace cmake
 {
     internal static class GlobalSettings
     {
-        static class Keys
+        internal static class Keys
         {
             internal const string executablePath = "cmake.ExecutablePath";
+            internal const string buildOnEditorLoad = "cmake.buildOnEditorLoad";
+            internal const string buildOnScriptReload = "cmake.buildOnScriptReload";
+            internal const string buildBeforePlayerCompilation = "cmake.buildBeforePlayerCompilation";   
         }
 
         static bool m_loaded = false;
 
-        static string m_executablePath = "cmake";
+        static string m_executablePath = 
+        #if UNITY_EDITOR_WIN
+        "cmake.exe";
+        #else
+        "cmake";
+        #endif
         internal static string ExecutablePath
         {
             get { return m_executablePath; }
             set { TrySave(ref m_executablePath, value, Keys.executablePath); }
+        }
+
+        static bool m_buildOnEditorLoad = false;
+        internal static bool BuildOnEditorLoad
+        {
+            get { return m_buildOnEditorLoad; }
+            set { TrySave(ref m_buildOnEditorLoad, value, Keys.buildOnScriptReload); }
+        }
+
+        static bool m_buildOnScriptReload = false;
+        internal static bool BuildOnScriptReload
+        {
+            get { return m_buildOnScriptReload; }
+            set { TrySave(ref m_buildOnScriptReload, value, Keys.buildOnScriptReload); }
+        }
+
+        static bool m_buildBeforePlayerCompilation = true;
+        internal static bool BuildBeforePlayerCompilation
+        {
+            get { return m_buildBeforePlayerCompilation; }
+            set { TrySave(ref m_buildBeforePlayerCompilation, value, Keys.buildBeforePlayerCompilation); }
         }
 
         static GlobalSettings()
@@ -55,11 +84,18 @@ namespace cmake
             GUILayout.Button("Download", GUILayout.Width(80), GUILayout.Height(14));
 
             EditorGUILayout.EndHorizontal();
+
+            BuildOnEditorLoad = EditorGUILayout.Toggle("Build On Editor Load", BuildOnEditorLoad);
+            BuildOnScriptReload = EditorGUILayout.Toggle("Build On Script Reload", BuildOnScriptReload);
+            BuildBeforePlayerCompilation = EditorGUILayout.Toggle("Build On Script Reload", BuildBeforePlayerCompilation);
         }
 
         static void Load()
         {
-            m_executablePath = EditorPrefs.GetString(Keys.executablePath, "cmake.exe");
+            m_executablePath = EditorPrefs.GetString(Keys.executablePath, m_executablePath);
+            m_buildOnEditorLoad = EditorPrefs.GetBool(Keys.buildOnEditorLoad, m_buildOnEditorLoad);
+            m_buildOnScriptReload = EditorPrefs.GetBool(Keys.buildOnScriptReload, m_buildOnScriptReload);
+            m_buildBeforePlayerCompilation = EditorPrefs.GetBool(Keys.buildBeforePlayerCompilation, m_buildBeforePlayerCompilation);
             m_loaded = true;
         }
 

@@ -94,19 +94,21 @@ namespace cmake
             return p;
         }
 
-        public Process Build(string target, string buildFolder = null, string[] args = null)
-        {
-            return Build(new string[]{ target }, buildFolder, args);
-        }
-
-        public Process Build(string[] targets = null , string buildFolder = null, string[] args = null)
+        public Process Build(string target = null, string buildFolder = null, string[] args = null)
         {
             List<string> fullArgs = new List<string>();
             fullArgs.Add("--build");
+            fullArgs.Add(buildFolder);
+            if(target != null)
+            {
+                fullArgs.Add("--target " + target);
+
+            }
             if(args != null)
             {
                 fullArgs.AddRange(args);
             }
+
 
             var p = CreateProcess(fullArgs.ToArray());
             if(buildFolder != null)
